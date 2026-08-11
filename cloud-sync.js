@@ -14,6 +14,7 @@ import {
   collection,
   doc,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   onSnapshot,
@@ -105,6 +106,15 @@ export async function atualizar(uid, entity, id, data) {
 export async function remover(uid, entity, id) {
   const ref = doc(db, ROOT, uid, entity, id);
   await deleteDoc(ref);
+}
+
+// Usado pelo backup: grava um registro com um ID específico (do arquivo
+// importado), em vez de deixar o Firestore gerar um novo — assim os vínculos
+// entre cliente/procedimento/caso do backup continuam funcionando.
+export async function definirComId(uid, entity, id, data) {
+  if (!ENTITIES.includes(entity)) throw new Error("Entidade inválida: " + entity);
+  const ref = doc(db, ROOT, uid, entity, id);
+  await setDoc(ref, { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
 }
 
 export function uid4() {

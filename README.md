@@ -16,6 +16,24 @@ Já vem configurado com as credenciais do projeto `ajuste-financeiro` (o mesmo q
 
 Pronto — é só criar uma conta na tela de login do próprio app e usar.
 
+### Se der erro "usuário não encontrado" ao entrar
+
+Isso é o Firebase avisando que aquele e-mail nunca foi cadastrado **como conta de autenticação** neste projeto — não é sobre existir em algum outro app. Duas causas comuns:
+
+- Você foi direto pra tela de login em vez de "Criar conta" (`#/registrar`) na primeira vez.
+- Você digitou um e-mail diferente do que já usa nos outros apps.
+
+Pra conferir: Console do Firebase → **Authentication → Users** — se o e-mail não aparecer na lista, ele realmente não existe ainda; use "Criar conta" pra cadastrá-lo.
+
+## Configurações (backup)
+
+Dentro do app, no ícone de engrenagem (barra lateral no desktop, topo no celular):
+- **Exportar backup**: baixa um `.json` com tudo (clientes, procedimentos, casos, contatos).
+- **Importar backup**: sobe um `.json` exportado por este app; grava por cima dos dados existentes por ID, sem apagar o resto.
+- **Limpar tudo**: apaga todos os dados desta conta (pede confirmação digitada, não tem volta).
+
+Incluído nesta entrega: `dados-ficticios-teste.json` — um conjunto de clientes, procedimentos e casos fictícios pra você importar e testar o app sem mexer nos seus dados reais.
+
 ## O que o app já faz
 
 - Login/criação de conta (e-mail e senha)

@@ -1,0 +1,357 @@
+{
+  "versao": 1,
+  "exportadoEm": "2026-08-11T00:00:00.000Z",
+  "clientes": [
+    {
+      "id": "cli_maria",
+      "nome": "Maria Aparecida Souza",
+      "cpfCnpj": "045.678.912-30",
+      "telefone": "(42) 99911-2233",
+      "email": "maria.souza@email.com",
+      "endereco": "Rua das Acácias, 245 — Ponta Grossa/PR",
+      "observacoes": "Filha do falecido Sr. José Aparecido. Contato preferencial via WhatsApp após as 18h.",
+      "documentos": [
+        { "id": "d1", "nome": "RG e CPF", "url": "" },
+        { "id": "d2", "nome": "Certidão de óbito do pai", "url": "" }
+      ],
+      "anotacoes": [
+        { "id": "a1", "texto": "Cliente indicada pelo Dr. Paulo (contador). Tem mais dois irmãos herdeiros, ambos concordam com a partilha.", "data": "05/08/2026" }
+      ],
+      "historico": [
+        { "id": "h1", "texto": "Primeira reunião realizada", "data": "05/08/2026" }
+      ]
+    },
+    {
+      "id": "cli_carlos",
+      "nome": "Carlos Menezes",
+      "cpfCnpj": "789.123.456-00",
+      "telefone": "(42) 98844-1100",
+      "email": "carlos.menezes@email.com",
+      "endereco": "Chácara Santa Rita, s/n — Zona Rural, Ponta Grossa/PR",
+      "observacoes": "Ocupa o imóvel há mais de 20 anos. Não tem nenhuma documentação do terreno.",
+      "documentos": [],
+      "anotacoes": [
+        { "id": "a1", "texto": "Vizinho antigo confirma verbalmente a posse mansa e pacífica desde 2004.", "data": "02/08/2026" }
+      ],
+      "historico": []
+    },
+    {
+      "id": "cli_fernanda",
+      "nome": "Fernanda Lopes",
+      "cpfCnpj": "321.654.987-11",
+      "telefone": "(42) 98877-1122",
+      "email": "fernanda.lopes@email.com",
+      "endereco": "Av. Brasil, 1120, apto 302 — Ponta Grossa/PR",
+      "observacoes": "Contribuinte facultativa do INSS, sem histórico de contribuições anteriores. Gestante, 28 semanas.",
+      "documentos": [
+        { "id": "d1", "nome": "Carteira de gestante", "url": "" }
+      ],
+      "anotacoes": [],
+      "historico": [
+        { "id": "h1", "texto": "Orientada sobre carência mínima e GPS de agosto", "data": "07/08/2026" }
+      ]
+    },
+    {
+      "id": "cli_roberto",
+      "nome": "Roberto Nunes",
+      "cpfCnpj": "159.753.486-22",
+      "telefone": "(42) 99123-4455",
+      "email": "roberto.nunes@email.com",
+      "endereco": "Rua Paraná, 88 — Ponta Grossa/PR",
+      "observacoes": "Celular bloqueado remotamente pela financeira mesmo após pagamento confirmado.",
+      "documentos": [
+        { "id": "d1", "nome": "Comprovante de pagamento da parcela", "url": "" },
+        { "id": "d2", "nome": "Print do bloqueio do aparelho", "url": "" }
+      ],
+      "anotacoes": [
+        { "id": "a1", "texto": "Segundo bloqueio em 3 meses. Já houve reclamação anterior sem resposta.", "data": "01/08/2026" }
+      ],
+      "historico": []
+    },
+    {
+      "id": "cli_juliana",
+      "nome": "Juliana Ferreira",
+      "cpfCnpj": "654.321.789-90",
+      "telefone": "(42) 99555-7788",
+      "email": "juliana.ferreira@email.com",
+      "endereco": "Rua Tocantins, 410 — Ponta Grossa/PR",
+      "observacoes": "",
+      "documentos": [],
+      "anotacoes": [],
+      "historico": []
+    }
+  ],
+  "procedimentos": [
+    {
+      "id": "proc_inventario",
+      "nome": "Inventário extrajudicial",
+      "descricao": "Partilha de bens sem testamento, quando todos os herdeiros são capazes e concordam com a divisão.",
+      "objetivo": "Transferir a titularidade dos bens do falecido aos herdeiros de forma rápida, via cartório.",
+      "quandoUsar": "Quando não há testamento, todos os herdeiros são maiores e capazes, e há consenso entre as partes.",
+      "requisitos": "Ausência de testamento; herdeiros maiores/capazes; consenso; nenhum incapaz envolvido.",
+      "prazos": "Recomendado abrir em até 60 dias do óbito para evitar multa de ITCMD em atraso (varia por estado).",
+      "custos": "Emolumentos de cartório + ITCMD (percentual varia conforme o estado).",
+      "faq": "Pode incluir imóvel financiado? Só com anuência do credor. Precisa de advogado? Sim, é obrigatório em inventário extrajudicial.",
+      "errosComuns": "Esquecer de levantar todas as certidões negativas antes de agendar a escritura, atrasando o processo.",
+      "dicas": "Sempre confirmar com o cartório se aceitam CND por e-mail antes de imprimir tudo.",
+      "checklistModelo": [
+        { "id": "cm1", "etapa": "Documentos", "tarefa": "Certidão de óbito" },
+        { "id": "cm2", "etapa": "Documentos", "tarefa": "Certidão negativa de débitos" },
+        { "id": "cm3", "etapa": "Documentos", "tarefa": "Certidão de casamento/nascimento dos herdeiros" },
+        { "id": "cm4", "etapa": "Cartório", "tarefa": "Agendar escritura de inventário" },
+        { "id": "cm5", "etapa": "Fiscal", "tarefa": "Recolhimento do ITCMD" },
+        { "id": "cm6", "etapa": "Registro", "tarefa": "Registro no cartório de imóveis" }
+      ],
+      "documentosNecessarios": [
+        { "id": "dn1", "nome": "Certidão de óbito", "onde": "Cartório de Registro Civil", "url": "", "obs": "" },
+        { "id": "dn2", "nome": "Certidão negativa de débitos municipais", "onde": "Prefeitura", "url": "", "obs": "Necessária para cada imóvel do espólio" }
+      ],
+      "conhecimentos": []
+    },
+    {
+      "id": "proc_usucapiao",
+      "nome": "Usucapião extrajudicial",
+      "descricao": "Reconhecimento da propriedade de um imóvel pela posse prolongada, mansa e pacífica.",
+      "objetivo": "Regularizar a titularidade de imóvel ocupado há anos sem registro em nome do possuidor.",
+      "quandoUsar": "Quando há posse contínua e incontestada pelo prazo legal exigido (varia conforme a modalidade).",
+      "requisitos": "Posse mansa, pacífica e ininterrupta; ata notarial; planta e memorial descritivo assinados por profissional habilitado.",
+      "prazos": "Processo extrajudicial costuma levar de 6 a 12 meses, dependendo da complexidade e de impugnações.",
+      "custos": "Ata notarial + levantamento topográfico + emolumentos de registro.",
+      "faq": "Precisa de anuência dos confrontantes? Sim, é etapa obrigatória no procedimento extrajudicial.",
+      "errosComuns": "Planta e memorial descritivo fora do padrão exigido pelo cartório, gerando exigências repetidas.",
+      "dicas": "Verificar previamente com o cartório de registro de imóveis o padrão de planta aceito na comarca.",
+      "checklistModelo": [
+        { "id": "cm1", "etapa": "Documentação inicial", "tarefa": "Ata notarial de constatação da posse" },
+        { "id": "cm2", "etapa": "Documentação inicial", "tarefa": "Planta e memorial descritivo do imóvel" },
+        { "id": "cm3", "etapa": "Vizinhança", "tarefa": "Anuência dos confrontantes" },
+        { "id": "cm4", "etapa": "Cartório", "tarefa": "Protocolo do pedido no registro de imóveis" }
+      ],
+      "documentosNecessarios": [
+        { "id": "dn1", "nome": "Comprovantes de posse (contas, fotos antigas)", "onde": "Com o próprio cliente", "url": "", "obs": "Quanto mais antigo, melhor" }
+      ],
+      "conhecimentos": []
+    },
+    {
+      "id": "proc_maternidade",
+      "nome": "Salário-maternidade — contribuinte facultativa",
+      "descricao": "Benefício previdenciário para gestante/mãe contribuinte facultativa do INSS.",
+      "objetivo": "Garantir o recebimento do benefício mesmo sem histórico prévio de contribuições.",
+      "quandoUsar": "Quando a cliente é contribuinte facultativa recente e precisa entender carência e timing das guias.",
+      "requisitos": "Carência mínima de contribuições (10 meses, salvo parto prematuro); qualidade de segurada mantida.",
+      "prazos": "Benefício deve ser requerido em até 5 anos do parto, mas o ideal é logo após o nascimento.",
+      "custos": "Sem custos de cartório — apenas as guias GPS mensais recolhidas pela própria cliente.",
+      "faq": "Perde o direito se atrasar uma guia? Pode comprometer a qualidade de segurada — orientar sempre sobre regularidade.",
+      "errosComuns": "Cliente recolher a guia com código errado (contribuinte facultativa vs. individual).",
+      "dicas": "Montar um cronograma simples de vencimento das guias para a cliente não perder nenhuma competência.",
+      "checklistModelo": [
+        { "id": "cm1", "etapa": "Orientação", "tarefa": "Explicar carência e código correto da GPS" },
+        { "id": "cm2", "etapa": "Acompanhamento", "tarefa": "Conferir recolhimento mensal das guias" },
+        { "id": "cm3", "etapa": "Pós-parto", "tarefa": "Protocolar requerimento do benefício" }
+      ],
+      "documentosNecessarios": [
+        { "id": "dn1", "nome": "Certidão de nascimento da criança", "onde": "Cartório de Registro Civil", "url": "", "obs": "" },
+        { "id": "dn2", "nome": "Comprovantes de recolhimento das GPS", "onde": "Com a própria cliente", "url": "", "obs": "" }
+      ],
+      "conhecimentos": [
+        { "id": "k1", "texto": "Em casos de parto prematuro, a carência exigida cai para 10 meses mesmo com contribuições mais recentes — vale sempre checar a data provável do parto.", "sugestaoChecklist": "" }
+      ]
+    },
+    {
+      "id": "proc_consumidor",
+      "nome": "Reclamação — bloqueio indevido de aparelho (PayJoy e similares)",
+      "descricao": "Ação/reclamação contra bloqueio remoto de celular financiado mesmo após pagamento confirmado.",
+      "objetivo": "Cessar o bloqueio indevido e, se aplicável, buscar reparação por danos.",
+      "quandoUsar": "Quando o cliente comprova pagamento e mesmo assim o aparelho continua bloqueado remotamente.",
+      "requisitos": "Comprovante de pagamento; prints do bloqueio; histórico de reclamações anteriores, se houver.",
+      "prazos": "Reiteração de conduta (bloqueios repetidos) fortalece pedido de dano moral.",
+      "custos": "JEC — sem custas em primeira instância para o consumidor.",
+      "faq": "Precisa notificar a empresa antes? Recomendado registrar reclamação formal antes de protocolar.",
+      "errosComuns": "Protocolar sem anexar todos os comprovantes de pagamento das parcelas em dia.",
+      "dicas": "Sempre print da tela de bloqueio com data e hora visíveis.",
+      "checklistModelo": [
+        { "id": "cm1", "etapa": "Provas", "tarefa": "Reunir comprovantes de pagamento" },
+        { "id": "cm2", "etapa": "Provas", "tarefa": "Print do bloqueio com data/hora" },
+        { "id": "cm3", "etapa": "Tentativa prévia", "tarefa": "Registrar reclamação formal na empresa" },
+        { "id": "cm4", "etapa": "Protocolo", "tarefa": "Protocolar no JEC" }
+      ],
+      "documentosNecessarios": [
+        { "id": "dn1", "nome": "Comprovantes de pagamento", "onde": "Com o próprio cliente", "url": "", "obs": "" }
+      ],
+      "conhecimentos": []
+    },
+    {
+      "id": "proc_divorcio",
+      "nome": "Divórcio consensual",
+      "descricao": "Dissolução do casamento por consenso entre as partes, sem filhos menores ou incapazes.",
+      "objetivo": "Formalizar o divórcio de forma rápida, via cartório quando possível.",
+      "quandoUsar": "Quando há consenso, não há filhos menores/incapazes, e a partilha de bens já está acertada.",
+      "requisitos": "Consenso entre as partes; ausência de filhos menores ou incapazes; acordo sobre partilha, se houver bens.",
+      "prazos": "Extrajudicial costuma sair em poucos dias após reunir a documentação.",
+      "custos": "Emolumentos de cartório, variam conforme existência de bens a partilhar.",
+      "faq": "Pode manter o nome de casado? Sim, é opção da parte interessada.",
+      "errosComuns": "Não formalizar por escrito o acordo de partilha antes de ir ao cartório.",
+      "dicas": "",
+      "checklistModelo": [
+        { "id": "cm1", "etapa": "Documentos", "tarefa": "Certidão de casamento atualizada" },
+        { "id": "cm2", "etapa": "Acordo", "tarefa": "Redigir minuta de partilha de bens" },
+        { "id": "cm3", "etapa": "Cartório", "tarefa": "Agendar escritura de divórcio" }
+      ],
+      "documentosNecessarios": [],
+      "conhecimentos": []
+    }
+  ],
+  "casos": [
+    {
+      "id": "caso_inventario_maria",
+      "clienteId": "cli_maria",
+      "procedimentoId": "proc_inventario",
+      "titulo": "Inventário do pai de Maria",
+      "status": "Em andamento",
+      "proximaAcao": "Recolher ITCMD e agendar escritura no cartório",
+      "prazo": "2026-08-14",
+      "checklist": [
+        { "id": "cc1", "etapa": "Documentos", "tarefa": "Certidão de óbito", "concluido": true },
+        { "id": "cc2", "etapa": "Documentos", "tarefa": "Certidão negativa de débitos", "concluido": true },
+        { "id": "cc3", "etapa": "Documentos", "tarefa": "Certidão de casamento/nascimento dos herdeiros", "concluido": true },
+        { "id": "cc4", "etapa": "Cartório", "tarefa": "Agendar escritura de inventário", "concluido": false },
+        { "id": "cc5", "etapa": "Fiscal", "tarefa": "Recolhimento do ITCMD", "concluido": false },
+        { "id": "cc6", "etapa": "Registro", "tarefa": "Registro no cartório de imóveis", "concluido": false }
+      ],
+      "documentos": [
+        { "id": "d1", "nome": "Certidão de óbito", "url": "" }
+      ],
+      "anotacoes": [
+        { "id": "a1", "texto": "Herdeiros já assinaram a minuta de partilha. Falta só o ITCMD.", "data": "08/08/2026" }
+      ],
+      "historico": [
+        { "id": "h1", "texto": "Caso aberto", "data": "05/08/2026" },
+        { "id": "h2", "texto": "Certidões reunidas", "data": "07/08/2026" }
+      ],
+      "licoes": []
+    },
+    {
+      "id": "caso_usucapiao_carlos",
+      "clienteId": "cli_carlos",
+      "procedimentoId": "proc_usucapiao",
+      "titulo": "Usucapião — Chácara Santa Rita",
+      "status": "Em andamento",
+      "proximaAcao": "Contratar topógrafo para planta e memorial descritivo",
+      "prazo": "2026-08-20",
+      "checklist": [
+        { "id": "cc1", "etapa": "Documentação inicial", "tarefa": "Ata notarial de constatação da posse", "concluido": true },
+        { "id": "cc2", "etapa": "Documentação inicial", "tarefa": "Planta e memorial descritivo do imóvel", "concluido": false },
+        { "id": "cc3", "etapa": "Vizinhança", "tarefa": "Anuência dos confrontantes", "concluido": false },
+        { "id": "cc4", "etapa": "Cartório", "tarefa": "Protocolo do pedido no registro de imóveis", "concluido": false }
+      ],
+      "documentos": [],
+      "anotacoes": [
+        { "id": "a1", "texto": "Dois dos três confrontantes já confirmaram que assinam a anuência sem problema.", "data": "03/08/2026" }
+      ],
+      "historico": [
+        { "id": "h1", "texto": "Ata notarial lavrada", "data": "02/08/2026" }
+      ],
+      "licoes": [
+        { "id": "l1", "texto": "Vale sempre perguntar ao cartório da comarca qual o padrão de planta exigido antes de contratar o topógrafo — evita retrabalho e custo extra.", "sugestaoChecklist": "Confirmar padrão de planta exigido pelo cartório antes de contratar o topógrafo", "incorporado": false }
+      ]
+    },
+    {
+      "id": "caso_maternidade_fernanda",
+      "clienteId": "cli_fernanda",
+      "procedimentoId": "proc_maternidade",
+      "titulo": "Salário-maternidade — Fernanda",
+      "status": "Em andamento",
+      "proximaAcao": "Protocolar GPS de agosto",
+      "prazo": "2026-08-20",
+      "checklist": [
+        { "id": "cc1", "etapa": "Orientação", "tarefa": "Explicar carência e código correto da GPS", "concluido": true },
+        { "id": "cc2", "etapa": "Acompanhamento", "tarefa": "Conferir recolhimento mensal das guias", "concluido": true },
+        { "id": "cc3", "etapa": "Pós-parto", "tarefa": "Protocolar requerimento do benefício", "concluido": false }
+      ],
+      "documentos": [],
+      "anotacoes": [],
+      "historico": [
+        { "id": "h1", "texto": "Orientada sobre carência mínima", "data": "07/08/2026" }
+      ],
+      "licoes": []
+    },
+    {
+      "id": "caso_payjoy_roberto",
+      "clienteId": "cli_roberto",
+      "procedimentoId": "proc_consumidor",
+      "titulo": "PayJoy — bloqueio indevido",
+      "status": "Suspenso",
+      "proximaAcao": "Aguardar resposta da reclamação formal antes de protocolar no JEC",
+      "prazo": "2026-08-09",
+      "checklist": [
+        { "id": "cc1", "etapa": "Provas", "tarefa": "Reunir comprovantes de pagamento", "concluido": true },
+        { "id": "cc2", "etapa": "Provas", "tarefa": "Print do bloqueio com data/hora", "concluido": true },
+        { "id": "cc3", "etapa": "Tentativa prévia", "tarefa": "Registrar reclamação formal na empresa", "concluido": true },
+        { "id": "cc4", "etapa": "Protocolo", "tarefa": "Protocolar no JEC", "concluido": false }
+      ],
+      "documentos": [
+        { "id": "d1", "nome": "Print do bloqueio", "url": "" }
+      ],
+      "anotacoes": [],
+      "historico": [
+        { "id": "h1", "texto": "Reclamação formal registrada na empresa", "data": "01/08/2026" }
+      ],
+      "licoes": []
+    },
+    {
+      "id": "caso_divorcio_juliana",
+      "clienteId": "cli_juliana",
+      "procedimentoId": "proc_divorcio",
+      "titulo": "Divórcio consensual — Juliana",
+      "status": "Concluído",
+      "proximaAcao": "",
+      "prazo": "",
+      "checklist": [
+        { "id": "cc1", "etapa": "Documentos", "tarefa": "Certidão de casamento atualizada", "concluido": true },
+        { "id": "cc2", "etapa": "Acordo", "tarefa": "Redigir minuta de partilha de bens", "concluido": true },
+        { "id": "cc3", "etapa": "Cartório", "tarefa": "Agendar escritura de divórcio", "concluido": true }
+      ],
+      "documentos": [],
+      "anotacoes": [],
+      "historico": [
+        { "id": "h1", "texto": "Escritura de divórcio lavrada e registrada", "data": "20/07/2026" }
+      ],
+      "licoes": [
+        { "id": "l1", "texto": "Casal já chegou com a minuta de partilha praticamente pronta, o que acelerou bastante o processo.", "sugestaoChecklist": "", "incorporado": true }
+      ]
+    }
+  ],
+  "contatos": [
+    {
+      "id": "ct_cartorio",
+      "nome": "1º Cartório de Registro de Imóveis de Ponta Grossa",
+      "categoria": "Cartório",
+      "telefone": "(42) 3222-1010",
+      "email": "",
+      "observacoes": "Atende com hora marcada às terças e quintas."
+    },
+    {
+      "id": "ct_topografo",
+      "nome": "Eng. Marcos Vidal — Topografia",
+      "categoria": "Perito / Topógrafo",
+      "telefone": "(42) 99988-7766",
+      "email": "marcos.vidal@email.com",
+      "observacoes": "Referência pra plantas de usucapião, conhece o padrão exigido pelos cartórios da região."
+    },
+    {
+      "id": "ct_forum",
+      "nome": "Fórum da Comarca de Ponta Grossa",
+      "categoria": "Fórum",
+      "telefone": "(42) 3220-4000",
+      "email": "",
+      "observacoes": ""
+    },
+    {
+      "id": "ct_contador",
+      "nome": "Dr. Paulo Ricardo — Contador",
+      "categoria": "Parceiro",
+      "telefone": "(42) 99711-3344",
+      "email": "paulo.contabil@email.com",
+      "observacoes": "Costuma indicar clientes de inventário e questões previdenciárias."
+    }
+  ]
+}

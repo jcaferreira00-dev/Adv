@@ -1,5 +1,5 @@
 // app.js — Gestão Jurídica (SPA vanilla, sem build step)
-import { watchAuth, login, registrar, logout, watchEntity, criar, atualizar, remover, uid4 } from "./cloud-sync.js";
+import { watchAuth, login, registrar, logout, watchEntity, criar, atualizar, remover, definirComId, uid4 } from "./cloud-sync.js";
 
 const root = document.getElementById("app");
 
@@ -181,12 +181,16 @@ function shell(innerHtml, activeTab) {
       <div class="sidebar-links">
         ${tabs.map((t) => `<a href="${t.href}" class="${activeTab === t.key ? "active" : ""}"><span class="material-symbols-outlined">${t.icon}</span>${t.label}</a>`).join("")}
       </div>
+      <a href="#/config" class="sidebar-logout ${activeTab === "config" ? "active-cfg" : ""}" style="text-decoration:none;margin-bottom:6px;"><span class="material-symbols-outlined">settings</span> Configurações</a>
       <button class="sidebar-logout" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span> Sair</button>
     </nav>
     <div class="main">
       <div class="topbar">
         <div class="brand"><span class="material-symbols-outlined">balance</span><span>Gestão Jurídica</span></div>
-        <button class="iconbtn" title="Sair" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span></button>
+        <div style="display:flex;gap:2px;">
+          <a class="iconbtn" title="Configurações" href="#/config"><span class="material-symbols-outlined">settings</span></a>
+          <button class="iconbtn" title="Sair" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span></button>
+        </div>
       </div>
       <div class="content">${innerHtml}</div>
     </div>
@@ -212,6 +216,7 @@ function render() {
 
   if (section === "busca") { root.innerHTML = shell(viewBusca(), "busca"); return; }
   if (section === "contatos") { root.innerHTML = shell(viewContatos(), "dashboard"); attachContatoForm(); return; }
+  if (section === "config") { root.innerHTML = shell(viewConfig(), "config"); return; }
 
   if (section === "clientes") {
     if (parts.length === 1) { root.innerHTML = shell(viewListaClientes(), "clientes"); return; }
@@ -900,3 +905,114 @@ App.incorporarLicao = async function (casoId, licaoId) {
 };
 
 render();
+
+// ================================================================ CONFIGURAÇÕES / BACKUP
+function viewConfig() {
+  const totalRegistros = state.clientes.length + state.procedimentos.length + state.casos.length + state.contatos.length;
+  return `
+  <h1>Configurações</h1>
+  <p style="color:var(--text-dim);margin-bottom:20px;">Backup local dos seus dados — nada aqui afeta outros apps.</p>
+
+  <div class="card">
+    <h3>Exportar backup</h3>
+    <p style="color:var(--text-dim);font-size:.88rem;margin:6px 0 14px;line-height:1.5;">
+      Baixa um arquivo .json com todos os clientes, procedimentos, casos e contatos (${totalRegistros} registro${totalRegistros === 1 ? "" : "s"} no total). Guarde esse arquivo — é a sua cópia de segurança.
+    </p>
+    <button class="btn-primary" onclick="App.exportarBackup()">
+      <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">download</span> Exportar backup (.json)
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>Importar backup</h3>
+    <p style="color:var(--text-dim);font-size:.88rem;margin:6px 0 14px;line-height:1.5;">
+      Escolha um arquivo .json exportado por este app. Os registros do arquivo são gravados por cima dos dados atuais (por ID) — nada existente é apagado nesse processo.
+    </p>
+    <label class="btn-secondary" style="display:inline-block;cursor:pointer;">
+      Escolher arquivo…
+      <input type="file" accept="application/json" onchange="App.importarBackupArquivo(event)" style="display:none;">
+    </label>
+    <div id="import-status" style="margin-top:10px;font-size:.85rem;color:var(--text-dim);"></div>
+  </div>
+
+  <div class="card" style="border-color:rgba(224,100,95,.35);">
+    <h3 style="color:var(--danger);">Limpar tudo</h3>
+    <p style="color:var(--text-dim);font-size:.88rem;margin:6px 0 14px;line-height:1.5;">
+      Apaga permanentemente todos os clientes, procedimentos, casos e contatos desta conta. Não pode ser desfeito — exporte um backup antes de continuar.
+    </p>
+    <button class="btn-danger" onclick="App.limparTudo()">Apagar todos os dados</button>
+  </div>
+  `;
+}
+
+App.exportarBackup = function () {
+  const dados = {
+    versao: 1,
+    exportadoEm: new Date().toISOString(),
+    clientes: state.clientes,
+    procedimentos: state.procedimentos,
+    casos: state.casos,
+    contatos: state.contatos,
+  };
+  const json = JSON.stringify(dados, (k, v) => (v && typeof v.toDate === "function" ? v.toDate().toISOString() : v), 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `backup-gestao-juridica-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
+App.importarBackupArquivo = async function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = qs("import-status");
+  if (statusEl) statusEl.textContent = "Importando…";
+  try {
+    const text = await file.text();
+    const dados = JSON.parse(text);
+    const entidades = ["clientes", "procedimentos", "casos", "contatos"];
+    let total = 0;
+    for (const ent of entidades) {
+      const lista = Array.isArray(dados[ent]) ? dados[ent] : [];
+      for (const item of lista) {
+        const { id, createdAt, updatedAt, ...resto } = item;
+        if (!id) continue;
+        await definirComId(state.user.uid, ent, id, resto);
+        total++;
+      }
+    }
+    if (statusEl) statusEl.textContent = `Importação concluída: ${total} registro(s).`;
+  } catch (err) {
+    if (statusEl) statusEl.textContent = "Não foi possível importar esse arquivo. Verifique se é um backup válido.";
+  }
+  e.target.value = "";
+};
+
+App.limparTudo = async function () {
+  const ok1 = confirm(
+    "Isso vai apagar TODOS os clientes, procedimentos, casos e contatos desta conta, sem volta. Recomendo exportar um backup antes. Deseja continuar?"
+  );
+  if (!ok1) return;
+  const digitado = prompt('Para confirmar, digite exatamente: APAGAR TUDO');
+  if (digitado !== "APAGAR TUDO") {
+    alert("Confirmação incorreta. Nada foi apagado.");
+    return;
+  }
+  const uid = state.user.uid;
+  const todos = [
+    ...state.clientes.map((x) => ["clientes", x.id]),
+    ...state.procedimentos.map((x) => ["procedimentos", x.id]),
+    ...state.casos.map((x) => ["casos", x.id]),
+    ...state.contatos.map((x) => ["contatos", x.id]),
+  ];
+  for (const [ent, id] of todos) {
+    await remover(uid, ent, id);
+  }
+  alert("Tudo apagado.");
+  go("#/");
+};
