@@ -10,15 +10,12 @@ import {
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  getFirestore,
-  collection,
+   getFirestore,
   doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
+  setDoc,
+  getDoc,
   onSnapshot,
-  serverTimestamp,
-  enableIndexedDbPersistence,
+  enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 // -----------------------------------------------------------------------
@@ -35,9 +32,9 @@ const firebaseConfig = {
   appId: "1:1084264963597:web:fbf369dfa8e5dcb1d1bf44",
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 try {
   enableIndexedDbPersistence(db).catch(() => {});
