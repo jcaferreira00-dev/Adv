@@ -1,61 +1,63 @@
 # Gestão Jurídica — PWA
 
-App de gestão de clientes, procedimentos-base e casos, no mesmo formato dos seus outros apps: HTML/JS puro, sem build, direto no GitHub Pages.
+Aplicativo de gestão de clientes, casos e conhecimento jurídico, construído em React + Vite + Firebase.
 
-## Como subir
+## Publicação automática no GitHub Pages
 
-1. Suba **todos os arquivos desta pasta** (mantendo a estrutura, tudo na raiz) para o repositório no GitHub.
-2. Ative o GitHub Pages apontando para a branch/pasta onde estão os arquivos.
-3. Abra o site — ele já funciona a partir do `index.html`.
+Este projeto já vem com um workflow (`.github/workflows/deploy.yml`) que builda e publica
+o site sozinho, sempre que algo é enviado para a branch `main`. Depois de subir os arquivos
+para o repositório, é só ativar uma vez:
 
-## Firebase
+1. No repositório, vá em **Settings > Pages**.
+2. Em **Build and deployment > Source**, escolha **GitHub Actions**.
+3. Volte para a aba **Actions** do repositório e acompanhe o workflow "Publicar no GitHub Pages".
+   Ao terminar (ícone verde), o endereço do site aparece em Settings > Pages, algo como:
+   `https://jcaferreira00-dev.github.io/Adv/`
 
-Já vem configurado com as credenciais do projeto `ajuste-financeiro` (o mesmo que os outros apps usam). Não precisa editar `cloud-sync.js`.
+A partir daí, qualquer novo envio de arquivos para o repositório publica uma nova versão
+automaticamente — sem precisar rodar nenhum comando na sua máquina.
 
-Único passo no Console (se ainda não tiver feito pros outros apps): em **Authentication → método E-mail/senha**, garantir que está ativado. E colar o conteúdo de `firestore.rules` nas regras do Firestore — ele usa a coleção própria `advocacia_usuarios`, isolada dos outros apps do mesmo projeto.
+## Modo de teste (sem Firebase configurado)
 
-Pronto — é só criar uma conta na tela de login do próprio app e usar.
+Na tela de login existe um botão discreto **"Ferramentas"**. Ao abri-lo, aparece a opção
+**"Entrar em modo de teste"**. Esse modo permite navegar por todas as telas do sistema
+mesmo sem o Firebase estar configurado — os dados ficam salvos apenas no navegador
+(localStorage), não são sincronizados com nada, e servem só para você experimentar o
+sistema e ver o funcionamento antes de conectar sua conta real.
 
-### Se der erro "usuário não encontrado" ao entrar
+## Como conectar ao seu projeto Firebase (para uso real, com sincronização)
 
-Isso é o Firebase avisando que aquele e-mail nunca foi cadastrado **como conta de autenticação** neste projeto — não é sobre existir em algum outro app. Duas causas comuns:
+1. No Console do Firebase, ative os produtos: Authentication (método E-mail/senha), Firestore Database e Storage.
+2. Copie as credenciais do seu app web (Configurações do projeto > Geral > Seus apps).
+3. Abra o arquivo `src/firebase/config.js` e substitua os valores de `firebaseConfig` pelos do seu projeto.
+4. Publique as regras de segurança:
+   - `firestore.rules` no Firestore.
+   - `storage.rules` no Storage.
+   (Pode colar o conteúdo direto no editor de regras do Console.)
+5. Envie a alteração para o GitHub — a publicação acontece sozinha, como descrito acima.
 
-- Você foi direto pra tela de login em vez de "Criar conta" (`#/registrar`) na primeira vez.
-- Você digitou um e-mail diferente do que já usa nos outros apps.
-
-Pra conferir: Console do Firebase → **Authentication → Users** — se o e-mail não aparecer na lista, ele realmente não existe ainda; use "Criar conta" pra cadastrá-lo.
-
-## Configurações (backup)
-
-Dentro do app, no ícone de engrenagem (barra lateral no desktop, topo no celular):
-- **Exportar backup**: baixa um `.json` com tudo (clientes, procedimentos, casos, contatos).
-- **Importar backup**: sobe um `.json` exportado por este app; grava por cima dos dados existentes por ID, sem apagar o resto.
-- **Limpar tudo**: apaga todos os dados desta conta (pede confirmação digitada, não tem volta).
-
-Incluído nesta entrega: `dados-ficticios-teste.json` — um conjunto de clientes, procedimentos e casos fictícios pra você importar e testar o app sem mexer nos seus dados reais.
-
-## O que o app já faz
-
-- Login/criação de conta (e-mail e senha)
-- **Clientes**: cadastro completo, documentos, anotações, histórico, casos vinculados
-- **Procedimentos-base**: informações gerais, checklist modelo, documentos necessários (com "onde conseguir"), conhecimentos incorporados, casos vinculados
-- **Casos**: criados a partir de cliente + procedimento, com checklist copiado automaticamente do modelo; status, próxima ação, prazo, documentos, anotações, histórico
-- **Lições aprendidas**: registradas em cada caso; "Incorporar ao procedimento" grava a lição no procedimento-base e, se houver sugestão, adiciona automaticamente um novo item ao checklist modelo
-- **Busca** global (clientes, casos, procedimentos)
-- **Contatos úteis** (cartórios, peritos, parceiros)
-- **Painel inicial** com casos ativos e prazos próximos
-- Instalável como PWA, com cache básico offline dos arquivos do app (os dados em si dependem de conexão com o Firestore, com cache local do próprio SDK)
-
-## Estrutura
+## Rodando localmente (opcional)
 
 ```
-index.html      → shell + todo o CSS
-app.js          → toda a lógica do app (rotas, telas, ações)
-cloud-sync.js   → Firebase (login e leitura/escrita no Firestore)
-sw.js           → service worker (PWA)
-manifest.json   → metadados do PWA
-icon-192.png / icon-512.png
-firestore.rules → regras de segurança para colar no Console
+npm install
+npm run dev
 ```
 
-Sem etapa de build: é só editar e subir.
+## O que já está funcionando nesta versão
+
+- Login e criação de conta (e-mail/senha), além do modo de teste local
+- Clientes: cadastro completo, documentos, anotações, histórico, casos vinculados
+- Procedimentos-base: informações gerais, checklist modelo, documentos necessários (com "onde conseguir"), casos vinculados
+- Casos: criados a partir de um cliente + um procedimento, com checklist copiado automaticamente do procedimento-base, status, próxima ação, prazo, documentos, anotações, histórico
+- Lições aprendidas: registradas em cada caso, com opção de "incorporar ao procedimento"
+- Busca global simples (clientes, casos, procedimentos)
+- Contatos úteis
+- Painel inicial com casos ativos, prazos próximos e contadores animados
+- Instalável como aplicativo (PWA) no celular e no computador
+- Publicação automática via GitHub Actions
+
+## O que ainda não está nesta versão (fica para depois, como combinado)
+
+- Inteligência artificial (resumos, sugestões automáticas)
+- Controle de múltiplos usuários/equipe
+- Regras de segurança mais refinadas por tipo de dado
