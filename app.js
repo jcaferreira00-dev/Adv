@@ -1,18 +1,101 @@
 // app.js — Gestão Jurídica (SPA vanilla, sem build step)
-import { watchAuth, login, registrar, logout, watchEntity, criar, atualizar, remover, definirComId, uid4 } from "./cloud-sync.js";
+import {
+  watchAuth, login, registrar, logout, watchEntity,
+  criar as criarNuvem, atualizar as atualizarNuvem, remover as removerNuvem, definirComId as definirComIdNuvem,
+  uid4,
+} from "./cloud-sync.js";
 
 const root = document.getElementById("app");
 
+// ---------------------------------------------------------------- dados locais
+// O app funciona sem login: os dados ficam salvos neste aparelho (localStorage).
+// Ao entrar com uma conta (em Configurações), passa a sincronizar com a nuvem.
+const LOCAL_KEY = "adv_dados_local_v1";
+function nowStamp() {
+  const d = new Date();
+  return { seconds: Math.floor(d.getTime() / 1000), toDate: () => d };
+}
+function carregarLocal() {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    const d = raw ? JSON.parse(raw) : {};
+    return {
+      clientes: Array.isArray(d.clientes) ? d.clientes : [],
+      procedimentos: Array.isArray(d.procedimentos) ? d.procedimentos : [],
+      casos: Array.isArray(d.casos) ? d.casos : [],
+      contatos: Array.isArray(d.contatos) ? d.contatos : [],
+    };
+  } catch (e) {
+    return { clientes: [], procedimentos: [], casos: [], contatos: [] };
+  }
+}
+function salvarLocal() {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({
+      clientes: state.clientes, procedimentos: state.procedimentos,
+      casos: state.casos, contatos: state.contatos,
+    }));
+  } catch (e) { /* localStorage indisponível ou cheio — ignora */ }
+}
+
+const dadosIniciais = carregarLocal();
+
 const state = {
   user: null,
-  clientes: [],
-  procedimentos: [],
-  casos: [],
-  contatos: [],
+  clientes: dadosIniciais.clientes,
+  procedimentos: dadosIniciais.procedimentos,
+  casos: dadosIniciais.casos,
+  contatos: dadosIniciais.contatos,
   unsubs: [],
   authError: "",
   authBusy: false,
+  authMode: "login", // "login" | "registrar" — usado dentro de Configurações
 };
+
+// Sem login, o CRUD abaixo mexe direto no localStorage.
+// Com login, delega para o Firestore (cloud-sync.js), que sincroniza via onSnapshot.
+const Dados = {
+  async criar(entity, data) {
+    if (state.user) return await criarNuvem(state.user.uid, entity, data);
+    const item = { id: uid4(), ...data, createdAt: nowStamp(), updatedAt: nowStamp() };
+    state[entity] = [item, ...state[entity]];
+    salvarLocal();
+    render();
+    return item.id;
+  },
+  async atualizar(entity, id, data) {
+    if (state.user) return await atualizarNuvem(state.user.uid, entity, id, data);
+    state[entity] = state[entity].map((x) => (x.id === id ? { ...x, ...data, updatedAt: nowStamp() } : x));
+    salvarLocal();
+    render();
+  },
+  async remover(entity, id) {
+    if (state.user) return await removerNuvem(state.user.uid, entity, id);
+    state[entity] = state[entity].filter((x) => x.id !== id);
+    salvarLocal();
+    render();
+  },
+  async definirComId(entity, id, data) {
+    if (state.user) return await definirComIdNuvem(state.user.uid, entity, id, data);
+    const idx = state[entity].findIndex((x) => x.id === id);
+    if (idx >= 0) state[entity][idx] = { ...state[entity][idx], ...data, updatedAt: nowStamp() };
+    else state[entity] = [{ id, ...data, createdAt: nowStamp(), updatedAt: nowStamp() }, ...state[entity]];
+    salvarLocal();
+    render();
+  },
+};
+
+// Ao entrar/criar conta, envia pra nuvem o que já existia neste aparelho — nada se perde.
+async function mesclarLocalNaNuvem(uid, dadosLocais) {
+  const entidades = ["clientes", "procedimentos", "casos", "contatos"];
+  for (const ent of entidades) {
+    for (const item of dadosLocais[ent] || []) {
+      const { id, createdAt, updatedAt, ...resto } = item;
+      if (!id) continue;
+      try { await definirComIdNuvem(uid, ent, id, resto); } catch (e) { /* segue os demais itens */ }
+    }
+  }
+}
 
 // ---------------------------------------------------------------- helpers
 function esc(s) {
@@ -74,10 +157,11 @@ watchAuth(
   () => {
     state.user = null;
     detachListeners();
-    state.clientes = [];
-    state.procedimentos = [];
-    state.casos = [];
-    state.contatos = [];
+    const local = carregarLocal();
+    state.clientes = local.clientes;
+    state.procedimentos = local.procedimentos;
+    state.casos = local.casos;
+    state.contatos = local.contatos;
     render();
   }
 );
@@ -97,43 +181,17 @@ function detachListeners() {
   state.unsubs = [];
 }
 
-// ---------------------------------------------------------------- auth views
-function viewLogin() {
-  return `
-  <div class="auth-wrap"><div class="auth-card">
-    <span class="material-symbols-outlined logo">balance</span>
-    <h1>Gestão Jurídica</h1>
-    <p>Entre com sua conta para continuar.</p>
-    ${state.authError ? `<div class="error-msg">${esc(state.authError)}</div>` : ""}
-    <form class="form" onsubmit="App.doLogin(event)">
-      <label><span>E-mail</span><input id="f-email" type="email" required autocomplete="email"></label>
-      <label><span>Senha</span><input id="f-senha" type="password" required autocomplete="current-password"></label>
-      <button class="btn-primary btn-block" type="submit" ${state.authBusy ? "disabled" : ""}>${state.authBusy ? "Entrando…" : "Entrar"}</button>
-    </form>
-    <div class="auth-switch">Não tem conta? <a href="#/registrar">Criar conta</a></div>
-  </div></div>`;
-}
-function viewRegister() {
-  return `
-  <div class="auth-wrap"><div class="auth-card">
-    <span class="material-symbols-outlined logo">balance</span>
-    <h1>Criar conta</h1>
-    <p>Comece a organizar clientes, casos e procedimentos.</p>
-    ${state.authError ? `<div class="error-msg">${esc(state.authError)}</div>` : ""}
-    <form class="form" onsubmit="App.doRegister(event)">
-      <label><span>E-mail</span><input id="f-email" type="email" required autocomplete="email"></label>
-      <label><span>Senha</span><input id="f-senha" type="password" required minlength="6" autocomplete="new-password"></label>
-      <button class="btn-primary btn-block" type="submit" ${state.authBusy ? "disabled" : ""}>${state.authBusy ? "Criando…" : "Criar conta"}</button>
-    </form>
-    <div class="auth-switch">Já tem conta? <a href="#/login">Entrar</a></div>
-  </div></div>`;
-}
+// ---------------------------------------------------------------- autenticação (dentro de Configurações)
+App.setAuthMode = function (m) { state.authMode = m; state.authError = ""; render(); };
 App.doLogin = async function (e) {
   e.preventDefault();
   state.authError = ""; state.authBusy = true; render();
+  const snapshot = { clientes: state.clientes, procedimentos: state.procedimentos, casos: state.casos, contatos: state.contatos };
   try {
-    await login(val("f-email"), val("f-senha"));
-    go("#/");
+    const user = await login(val("cfg-email"), val("cfg-senha"));
+    await mesclarLocalNaNuvem(user.uid, snapshot);
+    state.authBusy = false;
+    go("#/config");
   } catch (err) {
     state.authError = traduzErro(err); state.authBusy = false; render();
   }
@@ -141,16 +199,19 @@ App.doLogin = async function (e) {
 App.doRegister = async function (e) {
   e.preventDefault();
   state.authError = ""; state.authBusy = true; render();
+  const snapshot = { clientes: state.clientes, procedimentos: state.procedimentos, casos: state.casos, contatos: state.contatos };
   try {
-    await registrar(val("f-email"), val("f-senha"));
-    go("#/");
+    const user = await registrar(val("cfg-email"), val("cfg-senha"));
+    await mesclarLocalNaNuvem(user.uid, snapshot);
+    state.authBusy = false;
+    go("#/config");
   } catch (err) {
     state.authError = traduzErro(err); state.authBusy = false; render();
   }
 };
 App.doLogout = async function () {
   await logout();
-  go("#/login");
+  go("#/config");
 };
 function traduzErro(err) {
   const code = err && err.code || "";
@@ -182,14 +243,14 @@ function shell(innerHtml, activeTab) {
         ${tabs.map((t) => `<a href="${t.href}" class="${activeTab === t.key ? "active" : ""}"><span class="material-symbols-outlined">${t.icon}</span>${t.label}</a>`).join("")}
       </div>
       <a href="#/config" class="sidebar-logout ${activeTab === "config" ? "active-cfg" : ""}" style="text-decoration:none;margin-bottom:6px;"><span class="material-symbols-outlined">settings</span> Configurações</a>
-      <button class="sidebar-logout" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span> Sair</button>
+      ${state.user ? `<button class="sidebar-logout" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span> Sair</button>` : ""}
     </nav>
     <div class="main">
       <div class="topbar">
         <div class="brand"><span class="material-symbols-outlined">balance</span><span>Gestão Jurídica</span></div>
         <div style="display:flex;gap:2px;">
           <a class="iconbtn" title="Configurações" href="#/config"><span class="material-symbols-outlined">settings</span></a>
-          <button class="iconbtn" title="Sair" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span></button>
+          ${state.user ? `<button class="iconbtn" title="Sair" onclick="App.doLogout()"><span class="material-symbols-outlined">logout</span></button>` : ""}
         </div>
       </div>
       <div class="content">${innerHtml}</div>
@@ -202,11 +263,6 @@ function shell(innerHtml, activeTab) {
 
 // ---------------------------------------------------------------- router
 function render() {
-  if (!state.user) {
-    const hash = window.location.hash || "#/login";
-    root.innerHTML = hash.startsWith("#/registrar") ? viewRegister() : viewLogin();
-    return;
-  }
   const hash = window.location.hash || "#/";
   const parts = hash.replace(/^#\//, "").split("/").filter(Boolean);
 
@@ -355,14 +411,14 @@ App.addContato = async function (e) {
   e.preventDefault();
   const nome = val("ct-nome").trim();
   if (!nome) return;
-  await criar(state.user.uid, "contatos", {
+  await Dados.criar("contatos", {
     nome, categoria: val("ct-categoria").trim(), telefone: val("ct-telefone").trim(),
     email: val("ct-email").trim(), observacoes: val("ct-obs").trim(),
   });
 };
 App.removerContato = async function (id) {
   if (!confirm("Remover este contato?")) return;
-  await remover(state.user.uid, "contatos", id);
+  await Dados.remover("contatos", id);
 };
 
 // ================================================================ CLIENTES
@@ -406,17 +462,17 @@ App.salvarCliente = async function (e, id) {
   };
   if (!data.nome) return;
   if (id) {
-    await atualizar(state.user.uid, "clientes", id, data);
+    await Dados.atualizar("clientes", id, data);
     go("#/clientes/" + id);
   } else {
     data.documentos = []; data.anotacoes = []; data.historico = [];
-    const newId = await criar(state.user.uid, "clientes", data);
+    const newId = await Dados.criar("clientes", data);
     go("#/clientes/" + newId);
   }
 };
 App.removerCliente = async function (id) {
   if (!confirm("Remover este cliente? Os casos vinculados não serão apagados, mas ficarão sem cliente.")) return;
-  await remover(state.user.uid, "clientes", id);
+  await Dados.remover("clientes", id);
   go("#/clientes");
 };
 
@@ -490,7 +546,7 @@ App.addDocumento = async function (e, entity, id) {
   if (!nome) return;
   const item = byId(state[entity], id);
   const documentos = [...(item.documentos || []), { id: uid4(), nome, url: val("doc-url").trim() }];
-  await atualizar(state.user.uid, entity, id, { documentos });
+  await Dados.atualizar(entity, id, { documentos });
 };
 
 function listaAnotacoes(entity, item, id) {
@@ -515,7 +571,7 @@ App.addAnotacao = async function (e, entity, id) {
   if (!texto) return;
   const item = byId(state[entity], id);
   const anotacoes = [...(item.anotacoes || []), { id: uid4(), texto, data: fmtDate(new Date().toISOString().slice(0, 10)) }];
-  await atualizar(state.user.uid, entity, id, { anotacoes });
+  await Dados.atualizar(entity, id, { anotacoes });
 };
 
 function listaHistorico(entity, item, id) {
@@ -538,13 +594,13 @@ App.addHistorico = async function (e, entity, id) {
   if (!texto) return;
   const item = byId(state[entity], id);
   const historico = [...(item.historico || []), { id: uid4(), texto, data: fmtDate(new Date().toISOString().slice(0, 10)) }];
-  await atualizar(state.user.uid, entity, id, { historico });
+  await Dados.atualizar(entity, id, { historico });
 };
 
 App.removerItem = async function (entity, id, field, itemId) {
   const item = byId(state[entity], id);
   const updated = (item[field] || []).filter((x) => x.id !== itemId);
-  await atualizar(state.user.uid, entity, id, { [field]: updated });
+  await Dados.atualizar(entity, id, { [field]: updated });
 };
 
 // ================================================================ PROCEDIMENTOS
@@ -599,17 +655,17 @@ App.salvarProcedimento = async function (e, id) {
   keys.forEach((k) => (data[k] = val("pr-" + k).trim()));
   if (!data.nome) return;
   if (id) {
-    await atualizar(state.user.uid, "procedimentos", id, data);
+    await Dados.atualizar("procedimentos", id, data);
     go("#/procedimentos/" + id);
   } else {
     data.checklistModelo = []; data.documentosNecessarios = []; data.conhecimentos = [];
-    const newId = await criar(state.user.uid, "procedimentos", data);
+    const newId = await Dados.criar("procedimentos", data);
     go("#/procedimentos/" + newId);
   }
 };
 App.removerProcedimento = async function (id) {
   if (!confirm("Remover este procedimento-base?")) return;
-  await remover(state.user.uid, "procedimentos", id);
+  await Dados.remover("procedimentos", id);
   go("#/procedimentos");
 };
 
@@ -704,7 +760,7 @@ App.addChecklistModelo = async function (e, id) {
   if (!tarefa) return;
   const p = byId(state.procedimentos, id);
   const checklistModelo = [...(p.checklistModelo || []), { id: uid4(), etapa: val("cm-etapa").trim() || "Geral", tarefa }];
-  await atualizar(state.user.uid, "procedimentos", id, { checklistModelo });
+  await Dados.atualizar("procedimentos", id, { checklistModelo });
 };
 App.addDocNecessario = async function (e, id) {
   e.preventDefault();
@@ -714,7 +770,7 @@ App.addDocNecessario = async function (e, id) {
   const documentosNecessarios = [...(p.documentosNecessarios || []), {
     id: uid4(), nome, onde: val("dn-onde").trim(), url: val("dn-url").trim(), obs: val("dn-obs").trim(),
   }];
-  await atualizar(state.user.uid, "procedimentos", id, { documentosNecessarios });
+  await Dados.atualizar("procedimentos", id, { documentosNecessarios });
 };
 
 // ================================================================ CASOS
@@ -769,7 +825,7 @@ App.salvarCaso = async function (e) {
   if (!clienteId || !procedimentoId || !titulo) return;
   const proc = byId(state.procedimentos, procedimentoId);
   const checklist = (proc.checklistModelo || []).map((it) => ({ id: uid4(), etapa: it.etapa, tarefa: it.tarefa, concluido: false }));
-  const newId = await criar(state.user.uid, "casos", {
+  const newId = await Dados.criar("casos", {
     clienteId, procedimentoId, titulo, status: "Em andamento",
     proximaAcao: val("cs-proxima").trim(), prazo: val("cs-prazo") || null,
     checklist, documentos: [], anotacoes: [], historico: [], licoes: [],
@@ -778,7 +834,7 @@ App.salvarCaso = async function (e) {
 };
 App.removerCaso = async function (id) {
   if (!confirm("Remover este caso? Esta ação não pode ser desfeita.")) return;
-  await remover(state.user.uid, "casos", id);
+  await Dados.remover("casos", id);
   go("#/casos");
 };
 
@@ -864,7 +920,7 @@ App.setTabCaso = function (t) { state.tabCaso = t; render(); };
 function attachCasoDetailForms() {}
 
 App.atualizarCasoCampo = async function (id, campo, valor) {
-  await atualizar(state.user.uid, "casos", id, { [campo]: campo === "prazo" ? (valor || null) : valor });
+  await Dados.atualizar("casos", id, { [campo]: campo === "prazo" ? (valor || null) : valor });
 };
 App.addChecklistCaso = async function (e, id) {
   e.preventDefault();
@@ -872,12 +928,12 @@ App.addChecklistCaso = async function (e, id) {
   if (!tarefa) return;
   const c = byId(state.casos, id);
   const checklist = [...(c.checklist || []), { id: uid4(), etapa: val("cc-etapa").trim() || "Geral", tarefa, concluido: false }];
-  await atualizar(state.user.uid, "casos", id, { checklist });
+  await Dados.atualizar("casos", id, { checklist });
 };
 App.toggleChecklistCaso = async function (id, itemId) {
   const c = byId(state.casos, id);
   const checklist = (c.checklist || []).map((it) => it.id === itemId ? { ...it, concluido: !it.concluido } : it);
-  await atualizar(state.user.uid, "casos", id, { checklist });
+  await Dados.atualizar("casos", id, { checklist });
 };
 App.addLicao = async function (e, id) {
   e.preventDefault();
@@ -885,7 +941,7 @@ App.addLicao = async function (e, id) {
   if (!texto) return;
   const c = byId(state.casos, id);
   const licoes = [...(c.licoes || []), { id: uid4(), texto, sugestaoChecklist: val("li-sugestao").trim(), incorporado: false }];
-  await atualizar(state.user.uid, "casos", id, { licoes });
+  await Dados.atualizar("casos", id, { licoes });
 };
 App.incorporarLicao = async function (casoId, licaoId) {
   const c = byId(state.casos, casoId);
@@ -898,10 +954,10 @@ App.incorporarLicao = async function (casoId, licaoId) {
     if (licao.sugestaoChecklist && licao.sugestaoChecklist.trim()) {
       patch.checklistModelo = [...(p.checklistModelo || []), { id: uid4(), etapa: "Da experiência anterior", tarefa: licao.sugestaoChecklist.trim() }];
     }
-    await atualizar(state.user.uid, "procedimentos", p.id, patch);
+    await Dados.atualizar("procedimentos", p.id, patch);
   }
   const licoes = (c.licoes || []).map((l) => l.id === licaoId ? { ...l, incorporado: true } : l);
-  await atualizar(state.user.uid, "casos", casoId, { licoes });
+  await Dados.atualizar("casos", casoId, { licoes });
 };
 
 render();
@@ -912,6 +968,35 @@ function viewConfig() {
   return `
   <h1>Configurações</h1>
   <p style="color:var(--text-dim);margin-bottom:20px;">Backup local dos seus dados — nada aqui afeta outros apps.</p>
+
+  <div class="card">
+    <h3>Sincronização na nuvem</h3>
+    ${state.user ? `
+      <p style="color:var(--text-dim);font-size:.88rem;margin:6px 0 14px;line-height:1.5;">
+        Conectado como <strong style="color:var(--text);">${esc(state.user.email)}</strong>. Seus dados estão sincronizados e disponíveis em qualquer aparelho onde você entrar com esta conta.
+      </p>
+      <button class="btn-secondary" onclick="App.doLogout()">
+        <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">logout</span> Sair da conta
+      </button>
+    ` : `
+      <p style="color:var(--text-dim);font-size:.88rem;margin:6px 0 14px;line-height:1.5;">
+        Sem login, seus dados ficam salvos apenas neste aparelho. Entre com uma conta (ou crie uma) para sincronizar entre celular, tablet e computador.
+      </p>
+      ${state.authError ? `<div class="error-msg">${esc(state.authError)}</div>` : ""}
+      <form class="form" onsubmit="${state.authMode === "registrar" ? "App.doRegister(event)" : "App.doLogin(event)"}" style="margin-bottom:6px;">
+        <label><span>E-mail</span><input id="cfg-email" type="email" required autocomplete="email"></label>
+        <label><span>Senha</span><input id="cfg-senha" type="password" required ${state.authMode === "registrar" ? 'minlength="6" autocomplete="new-password"' : 'autocomplete="current-password"'}></label>
+        <button class="btn-primary" type="submit" ${state.authBusy ? "disabled" : ""}>
+          ${state.authBusy ? "Aguarde…" : (state.authMode === "registrar" ? "Criar conta" : "Entrar")}
+        </button>
+      </form>
+      <div style="font-size:.86rem;color:var(--text-dim);">
+        ${state.authMode === "registrar"
+          ? `Já tem conta? <a href="#" onclick="event.preventDefault();App.setAuthMode('login')" style="color:var(--gold-soft);">Entrar</a>`
+          : `Não tem conta? <a href="#" onclick="event.preventDefault();App.setAuthMode('registrar')" style="color:var(--gold-soft);">Criar conta</a>`}
+      </div>
+    `}
+  </div>
 
   <div class="card">
     <h3>Exportar backup</h3>
@@ -938,7 +1023,7 @@ function viewConfig() {
   <div class="card" style="border-color:rgba(224,100,95,.35);">
     <h3 style="color:var(--danger);">Limpar tudo</h3>
     <p style="color:var(--text-dim);font-size:.88rem;margin:6px 0 14px;line-height:1.5;">
-      Apaga permanentemente todos os clientes, procedimentos, casos e contatos desta conta. Não pode ser desfeito — exporte um backup antes de continuar.
+      Apaga permanentemente todos os clientes, procedimentos, casos e contatos deste app. Não pode ser desfeito — exporte um backup antes de continuar.
     </p>
     <button class="btn-danger" onclick="App.limparTudo()">Apagar todos os dados</button>
   </div>
@@ -982,7 +1067,7 @@ App.importarBackupArquivo = async function (e) {
       for (const item of lista) {
         const { id, createdAt, updatedAt, ...resto } = item;
         if (!id) continue;
-        await definirComId(state.user.uid, ent, id, resto);
+        await Dados.definirComId(ent, id, resto);
         total++;
       }
     }
@@ -995,7 +1080,7 @@ App.importarBackupArquivo = async function (e) {
 
 App.limparTudo = async function () {
   const ok1 = confirm(
-    "Isso vai apagar TODOS os clientes, procedimentos, casos e contatos desta conta, sem volta. Recomendo exportar um backup antes. Deseja continuar?"
+    "Isso vai apagar TODOS os clientes, procedimentos, casos e contatos , sem volta. Recomendo exportar um backup antes. Deseja continuar?"
   );
   if (!ok1) return;
   const digitado = prompt('Para confirmar, digite exatamente: APAGAR TUDO');
@@ -1003,7 +1088,6 @@ App.limparTudo = async function () {
     alert("Confirmação incorreta. Nada foi apagado.");
     return;
   }
-  const uid = state.user.uid;
   const todos = [
     ...state.clientes.map((x) => ["clientes", x.id]),
     ...state.procedimentos.map((x) => ["procedimentos", x.id]),
@@ -1011,7 +1095,7 @@ App.limparTudo = async function () {
     ...state.contatos.map((x) => ["contatos", x.id]),
   ];
   for (const [ent, id] of todos) {
-    await remover(uid, ent, id);
+    await Dados.remover(ent, id);
   }
   alert("Tudo apagado.");
   go("#/");
